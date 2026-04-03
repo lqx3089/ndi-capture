@@ -1,0 +1,59 @@
+# Build directories
+build/
+build-*/
+out/
+cmake-build-*/
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+Makefile
+
+# Qt generated files
+*.ui.h
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.moc
+
+# Visual Studio / VS Code
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.ncb
+*.sdf
+*.VC.db
+*.VC.opendb
+.vscode/settings.json
+.vscode/launch.json
+.vscode/c_cpp_properties.json
+
+# Executables and libraries
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.exp
+*.obj
+
+# NDI SDK (must be downloaded separately)
+third_party/ndi/
+
+# Logs
+logs/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Misc
+*.bak
+*.tmp
+*.orig
