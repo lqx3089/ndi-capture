@@ -1,5 +1,7 @@
 # NDI Capture
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 A Windows-focused, portable (no installer) Qt + CMake C++ application for capturing video from DirectShow/UVC devices and publishing them as **NDI Full** streams.
 
 ---
