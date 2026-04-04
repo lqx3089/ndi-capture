@@ -20,9 +20,10 @@ struct CaptureMode
     int    width      = 0;
     int    height     = 0;
     double fps        = 0.0;
-    std::string subtype;        // e.g. "YUY2", "NV12", "MJPG"
+    std::string subtype;        // e.g. "YUY2", "UYVY", "NV12", "MJPG"
     bool   isMjpeg    = false;
     bool   isCommon   = false;  // Matches a "common" resolution/fps
+    bool   isVih2     = false;  // Format uses VIDEOINFOHEADER2 (FORMAT_VideoInfo2)
 
     // Display string shown in the UI combo box
     std::string displayName() const;

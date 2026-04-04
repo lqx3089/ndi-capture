@@ -24,4 +24,13 @@ inline const GUID MEDIASUBTYPE_I420 =
 { 0x30323449, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 } };
 #endif
 
+// MEDIASUBTYPE_HDYC  {43594448-0000-0010-8000-00AA00389B71}
+// HDYC is used by Blackmagic Design and AJA capture cards.  It has the same
+// UYVY byte layout as MEDIASUBTYPE_UYVY but signals BT.709 colour space.
+// It is not present in strmiids.lib so we define it here.
+#ifndef MEDIASUBTYPE_HDYC
+inline const GUID MEDIASUBTYPE_HDYC =
+{ 0x43594448, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 } };
+#endif
+
 #endif // _WIN32

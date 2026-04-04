@@ -21,8 +21,8 @@
 #include <sstream>
 #include <iomanip>
 
-static constexpr int PREVIEW_W = 640;
-static constexpr int PREVIEW_H = 360;
+static constexpr int PREVIEW_W = 480;
+static constexpr int PREVIEW_H = 270;
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -219,7 +219,15 @@ void MainWindow::populateModeCombo(bool showAll)
 
     // Inform user if common-mode list is empty
     if (!showAll && m_shownModes.empty() && !m_allModes.empty()) {
-        m_msgLabel->setText("No common modes found – check 'Show all modes'");
+        // Auto-enable "show all modes" so the user sees the available modes.
+        // Release our own blockSignals before recursing so the recursive call
+        // can manage its own signal-block scope cleanly.
+        m_modeCombo->blockSignals(false);
+        m_showAllCheck->blockSignals(true);
+        m_showAllCheck->setChecked(true);
+        m_showAllCheck->blockSignals(false);
+        populateModeCombo(true);
+        return;
     } else {
         m_msgLabel->clear();
     }
