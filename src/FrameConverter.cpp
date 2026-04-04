@@ -24,6 +24,11 @@ bool FrameConverter::toBGRA(const uint8_t* srcData, size_t srcSize,
                                    dst,     w * 4,
                                    w, h) == 0;
     }
+    if (subtype == "UYVY") {
+        return libyuv::UYVYToARGB(srcData, w * 2,
+                                   dst,     w * 4,
+                                   w, h) == 0;
+    }
     if (subtype == "NV12") {
         // NV12: Y plane then interleaved UV
         const uint8_t* yPlane  = srcData;
@@ -57,7 +62,9 @@ bool FrameConverter::toBGRA(const uint8_t* srcData, size_t srcSize,
         return false;
     }
 #else
-    // Without libyuv, do a minimal YUY2->BGRA software conversion
+    // Without libyuv, do a minimal software conversion
+    // BT.601 YCbCr -> BGR helper (reused by YUY2 and UYVY paths below)
+    auto clampByte = [](int v) -> uint8_t { return (uint8_t)(v < 0 ? 0 : v > 255 ? 255 : v); };
     if (subtype == "YUY2") {
         for (int y = 0; y < h; ++y) {
             const uint8_t* src = srcData + y * w * 2;
@@ -65,15 +72,37 @@ bool FrameConverter::toBGRA(const uint8_t* srcData, size_t srcSize,
             for (int x = 0; x < w; x += 2) {
                 int Y0 = src[0]; int Cb = src[1] - 128;
                 int Y1 = src[2]; int Cr = src[3] - 128;
-                auto clamp = [](int v) -> uint8_t { return (uint8_t)(v < 0 ? 0 : v > 255 ? 255 : v); };
                 // BT.601 coefficients
-                d[0] = clamp(Y0 + (int)(1.772 * Cb));
-                d[1] = clamp(Y0 - (int)(0.344 * Cb) - (int)(0.714 * Cr));
-                d[2] = clamp(Y0 + (int)(1.402 * Cr));
+                d[0] = clampByte(Y0 + (int)(1.772 * Cb));
+                d[1] = clampByte(Y0 - (int)(0.344 * Cb) - (int)(0.714 * Cr));
+                d[2] = clampByte(Y0 + (int)(1.402 * Cr));
                 d[3] = 255;
-                d[4] = clamp(Y1 + (int)(1.772 * Cb));
-                d[5] = clamp(Y1 - (int)(0.344 * Cb) - (int)(0.714 * Cr));
-                d[6] = clamp(Y1 + (int)(1.402 * Cr));
+                d[4] = clampByte(Y1 + (int)(1.772 * Cb));
+                d[5] = clampByte(Y1 - (int)(0.344 * Cb) - (int)(0.714 * Cr));
+                d[6] = clampByte(Y1 + (int)(1.402 * Cr));
+                d[7] = 255;
+                src += 4; d += 8;
+            }
+        }
+        return true;
+    }
+    if (subtype == "UYVY") {
+        // UYVY: U Y0 V Y1 (same as YUY2 but byte-swapped)
+        for (int y = 0; y < h; ++y) {
+            const uint8_t* src = srcData + y * w * 2;
+            uint8_t*       d   = dst     + y * w * 4;
+            for (int x = 0; x < w; x += 2) {
+                int Cb = src[0] - 128;
+                int Y0 = src[1];
+                int Cr = src[2] - 128;
+                int Y1 = src[3];
+                d[0] = clampByte(Y0 + (int)(1.772 * Cb));
+                d[1] = clampByte(Y0 - (int)(0.344 * Cb) - (int)(0.714 * Cr));
+                d[2] = clampByte(Y0 + (int)(1.402 * Cr));
+                d[3] = 255;
+                d[4] = clampByte(Y1 + (int)(1.772 * Cb));
+                d[5] = clampByte(Y1 - (int)(0.344 * Cb) - (int)(0.714 * Cr));
+                d[6] = clampByte(Y1 + (int)(1.402 * Cr));
                 d[7] = 255;
                 src += 4; d += 8;
             }

@@ -10,6 +10,7 @@
 #  pragma comment(lib, "oleaut32.lib")
 // NV12, IYUV, and MJPG are declared in <uuids.h> (via <dshow.h>) and defined in
 // strmiids.lib.  Do NOT re-define them here; doing so causes LNK2005 with modern SDKs.
+#  include "dshow_guids.h"
 
 // ── ISampleGrabber callback ───────────────────────────────────────────────
 // qedit.h is not present in modern Windows SDKs; define the interfaces manually.
@@ -200,8 +201,8 @@ void CaptureSession::onSample(const uint8_t* data, size_t size,
         }
     }
 
-    // ── Preview (always, scale to 640×360) ────────────────────────────────
-    constexpr int PW = 640, PH = 360;
+    // ── Preview (always, scale to 480×270) ────────────────────────────────
+    constexpr int PW = 480, PH = 270;
     std::vector<uint8_t> previewBuf(PW * PH * 4);
     FrameConverter::scaleBGRA(bgra.data(), frameW, frameH,
                                previewBuf.data(), PW, PH);
@@ -337,26 +338,45 @@ void CaptureSession::buildGraph(const DeviceInfo& device, const CaptureMode& mod
                 VIDEO_STREAM_CONFIG_CAPS caps = {};
                 AM_MEDIA_TYPE* pmt = nullptr;
                 if (FAILED(sc->GetStreamCaps(i, &pmt, (BYTE*)&caps))) continue;
-                if (pmt->formattype == FORMAT_VideoInfo && pmt->pbFormat) {
-                    auto* vi = reinterpret_cast<VIDEOINFOHEADER*>(pmt->pbFormat);
-                    int mw = vi->bmiHeader.biWidth;
-                    int mh = std::abs(vi->bmiHeader.biHeight);
-                    double mfps = vi->AvgTimePerFrame > 0 ? 10000000.0 / vi->AvgTimePerFrame : 0;
+
+                bool isVih  = (pmt->formattype == FORMAT_VideoInfo  && pmt->pbFormat);
+                bool isVih2 = (pmt->formattype == FORMAT_VideoInfo2 && pmt->pbFormat);
+
+                if ((isVih || isVih2) && pmt->pbFormat) {
+                    int mw = 0, mh = 0;
+                    double mfps = 0.0;
+                    if (isVih2) {
+                        auto* vi2 = reinterpret_cast<VIDEOINFOHEADER2*>(pmt->pbFormat);
+                        mw   = vi2->bmiHeader.biWidth;
+                        mh   = std::abs(vi2->bmiHeader.biHeight);
+                        mfps = vi2->AvgTimePerFrame > 0 ? 10000000.0 / vi2->AvgTimePerFrame : 0;
+                    } else {
+                        auto* vi = reinterpret_cast<VIDEOINFOHEADER*>(pmt->pbFormat);
+                        mw   = vi->bmiHeader.biWidth;
+                        mh   = std::abs(vi->bmiHeader.biHeight);
+                        mfps = vi->AvgTimePerFrame > 0 ? 10000000.0 / vi->AvgTimePerFrame : 0;
+                    }
 
                     bool fpsMatch = std::abs(mfps - mode.fps) < 1.0 ||
                                     (mode.fps > 59 && mfps > 59);
                     bool dimMatch = (mw == mode.width && mh == mode.height);
+                    // Also require the format type (VIH vs VIH2) to match
+                    bool vihMatch = (isVih2 == mode.isVih2);
                     bool subMatch = false;
-                    if      (pmt->subtype == MEDIASUBTYPE_YUY2 && mode.subtype == "YUY2") subMatch = true;
-                    else if (pmt->subtype == MEDIASUBTYPE_NV12 && mode.subtype == "NV12") subMatch = true;
-                    else if (pmt->subtype == MEDIASUBTYPE_MJPG && mode.subtype == "MJPG") subMatch = true;
-                    else if (pmt->subtype == MEDIASUBTYPE_IYUV && mode.subtype == "I420") subMatch = true;
+                    if      (pmt->subtype == MEDIASUBTYPE_YUY2 && mode.subtype == "YUY2")  subMatch = true;
+                    else if (pmt->subtype == MEDIASUBTYPE_NV12 && mode.subtype == "NV12")  subMatch = true;
+                    else if (pmt->subtype == MEDIASUBTYPE_MJPG && mode.subtype == "MJPG")  subMatch = true;
+                    else if (pmt->subtype == MEDIASUBTYPE_IYUV && mode.subtype == "I420")  subMatch = true;
                     else if (pmt->subtype == MEDIASUBTYPE_RGB24 && mode.subtype == "RGB24") subMatch = true;
                     else if (pmt->subtype == MEDIASUBTYPE_RGB32 && mode.subtype == "RGB32") subMatch = true;
-                    // Fallback: subtype not recognized above, compare by GUID string (UNK: prefix)
-                    else if (!mode.subtype.empty() && mode.subtype.substr(0,3) != "UNK") subMatch = false;
+                    else if (pmt->subtype == MEDIASUBTYPE_UYVY && mode.subtype == "UYVY")  subMatch = true;
+                    else {
+                        // HDYC (same layout as UYVY)
+                        if (pmt->subtype == MEDIASUBTYPE_HDYC && mode.subtype == "UYVY") subMatch = true;
+                        // Fallback: unrecognized subtype – skip
+                    }
 
-                    if (dimMatch && fpsMatch && subMatch) {
+                    if (dimMatch && fpsMatch && vihMatch && subMatch) {
                         sc->SetFormat(pmt);
                         if (pmt->cbFormat && pmt->pbFormat) CoTaskMemFree(pmt->pbFormat);
                         if (pmt->pUnk) pmt->pUnk->Release();

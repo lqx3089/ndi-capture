@@ -55,18 +55,21 @@ std::string CaptureMode::displayName() const
 
 bool DeviceEnumerator::isCommonMode(int w, int h, double fps)
 {
-    // Common resolutions
+    // Common resolutions (including SD capture-card standards)
     bool commonRes =
         (w == 1920 && h == 1080) ||
         (w == 1280 && h == 720)  ||
         (w == 854  && h == 480)  ||
-        (w == 640  && h == 480);
+        (w == 640  && h == 480)  ||
+        (w == 720  && h == 576)  ||  // PAL SD
+        (w == 720  && h == 480);     // NTSC SD
 
-    // Common frame rates
+    // Common frame rates (including 24fps cinematic and 23.976)
     bool commonFps = (fps >= 59.0 && fps <= 61.0)  ||
                      (fps >= 29.0 && fps <= 31.0)   ||
                      (fps >= 24.9 && fps <= 25.1)   ||
-                     (fps >= 49.0 && fps <= 51.0);
+                     (fps >= 49.0 && fps <= 51.0)   ||
+                     (fps >= 23.9 && fps <= 24.1);   // 24 / 23.976
 
     return commonRes && commonFps;
 }
@@ -268,18 +271,31 @@ std::vector<CaptureMode> DeviceEnumerator::enumerateModes(const std::string& dev
         hr = streamConfig->GetStreamCaps(i, &pmt, (BYTE*)&caps);
         if (FAILED(hr) || !pmt) continue;
 
-        // Only care about video info types
-        if (pmt->formattype == FORMAT_VideoInfo && pmt->pbFormat) {
-            auto* vi = reinterpret_cast<VIDEOINFOHEADER*>(pmt->pbFormat);
-            CaptureMode mode;
-            mode.width  = vi->bmiHeader.biWidth;
-            mode.height = std::abs(vi->bmiHeader.biHeight);
+        // Handle both FORMAT_VideoInfo (VIDEOINFOHEADER) and
+        // FORMAT_VideoInfo2 (VIDEOINFOHEADER2 – used by many capture cards/webcams)
+        bool isVih = (pmt->formattype == FORMAT_VideoInfo  && pmt->pbFormat);
+        bool isVih2= (pmt->formattype == FORMAT_VideoInfo2 && pmt->pbFormat);
 
-            // Frame duration in 100-ns units
-            if (vi->AvgTimePerFrame > 0)
-                mode.fps = 10000000.0 / vi->AvgTimePerFrame;
-            else if (caps.MinFrameInterval > 0)
-                mode.fps = 10000000.0 / caps.MinFrameInterval;
+        if ((isVih || isVih2) && pmt->pbFormat) {
+            CaptureMode mode;
+            if (isVih2) {
+                auto* vi2 = reinterpret_cast<VIDEOINFOHEADER2*>(pmt->pbFormat);
+                mode.width  = vi2->bmiHeader.biWidth;
+                mode.height = std::abs(vi2->bmiHeader.biHeight);
+                if (vi2->AvgTimePerFrame > 0)
+                    mode.fps = 10000000.0 / vi2->AvgTimePerFrame;
+                else if (caps.MinFrameInterval > 0)
+                    mode.fps = 10000000.0 / caps.MinFrameInterval;
+                mode.isVih2 = true;
+            } else {
+                auto* vi = reinterpret_cast<VIDEOINFOHEADER*>(pmt->pbFormat);
+                mode.width  = vi->bmiHeader.biWidth;
+                mode.height = std::abs(vi->bmiHeader.biHeight);
+                if (vi->AvgTimePerFrame > 0)
+                    mode.fps = 10000000.0 / vi->AvgTimePerFrame;
+                else if (caps.MinFrameInterval > 0)
+                    mode.fps = 10000000.0 / caps.MinFrameInterval;
+            }
 
             // Sub-type
             const GUID& st = pmt->subtype;
@@ -289,13 +305,19 @@ std::vector<CaptureMode> DeviceEnumerator::enumerateModes(const std::string& dev
             else if (st == MEDIASUBTYPE_MJPG)  { mode.subtype = "MJPG"; mode.isMjpeg = true; }
             else if (st == MEDIASUBTYPE_RGB24) { mode.subtype = "RGB24"; }
             else if (st == MEDIASUBTYPE_RGB32) { mode.subtype = "RGB32"; }
+            else if (st == MEDIASUBTYPE_UYVY)  { mode.subtype = "UYVY"; }
             else {
-                // Convert GUID to string for unknown subtypes
-                OLECHAR guidStr[64];
-                StringFromGUID2(st, guidStr, 64);
-                int len = WideCharToMultiByte(CP_UTF8, 0, guidStr, -1, nullptr, 0, nullptr, nullptr);
-                if (len > 0) { mode.subtype.resize(len - 1); WideCharToMultiByte(CP_UTF8, 0, guidStr, -1, &mode.subtype[0], len, nullptr, nullptr); }
-                mode.subtype = "UNK:" + mode.subtype;
+                // HDYC: Blackmagic / AJA capture cards – same UYVY byte layout, BT.709 colour space
+                if (st == MEDIASUBTYPE_HDYC) {
+                    mode.subtype = "UYVY"; // treat as UYVY (same layout)
+                } else {
+                    // Convert GUID to string for unknown subtypes
+                    OLECHAR guidStr[64];
+                    StringFromGUID2(st, guidStr, 64);
+                    int len = WideCharToMultiByte(CP_UTF8, 0, guidStr, -1, nullptr, 0, nullptr, nullptr);
+                    if (len > 0) { mode.subtype.resize(len - 1); WideCharToMultiByte(CP_UTF8, 0, guidStr, -1, &mode.subtype[0], len, nullptr, nullptr); }
+                    mode.subtype = "UNK:" + mode.subtype;
+                }
             }
 
             mode.isCommon = isCommonMode(mode.width, mode.height, mode.fps);
