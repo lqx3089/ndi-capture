@@ -7,9 +7,12 @@
 #include <cstdint>
 
 #ifdef _WIN32
-#  define WIN32_LEAN_AND_MEAN
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 #  include <windows.h>
 #  include <dshow.h>
+#  include <dvdmedia.h>
 #  include <comdef.h>
 // I420 fallback + centralised GUID notes (NV12/IYUV/MJPG come from strmiids.lib)
 #  include "dshow_guids.h"

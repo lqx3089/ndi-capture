@@ -2,9 +2,12 @@
 #include "Logger.h"
 
 #ifdef _WIN32
-#  define WIN32_LEAN_AND_MEAN
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 #  include <windows.h>
 #  include <dshow.h>
+#  include <dvdmedia.h>
 #  pragma comment(lib, "strmiids.lib")
 #  pragma comment(lib, "ole32.lib")
 #  pragma comment(lib, "oleaut32.lib")
