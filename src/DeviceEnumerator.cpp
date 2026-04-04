@@ -11,32 +11,12 @@
 #  include <windows.h>
 #  include <dshow.h>
 #  include <comdef.h>
+// I420 fallback + centralised GUID notes (NV12/IYUV/MJPG come from strmiids.lib)
+#  include "dshow_guids.h"
 
 #  pragma comment(lib, "strmiids.lib")
 #  pragma comment(lib, "ole32.lib")
 #  pragma comment(lib, "oleaut32.lib")
-
-// ── GUID fallbacks (some subtypes not in all SDK versions) ────────────────
-// NV12: {3231564E-0000-0010-8000-00AA00389B71}
-#ifndef MEDIASUBTYPE_NV12
-static const GUID MEDIASUBTYPE_NV12 =
-{ 0x3231564E, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 } };
-#endif
-// I420: {30323449-0000-0010-8000-00AA00389B71}
-#ifndef MEDIASUBTYPE_I420
-static const GUID MEDIASUBTYPE_I420 =
-{ 0x30323449, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 } };
-#endif
-// IYUV: {56555949-0000-0010-8000-00AA00389B71}
-#ifndef MEDIASUBTYPE_IYUV
-static const GUID MEDIASUBTYPE_IYUV =
-{ 0x56555949, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 } };
-#endif
-// MJPG: {47504A4D-0000-0010-8000-00AA00389B71}
-#ifndef MEDIASUBTYPE_MJPG
-static const GUID MEDIASUBTYPE_MJPG =
-{ 0x47504A4D, 0x0000, 0x0010, { 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71 } };
-#endif
 
 // ── COM helpers ──────────────────────────────────────────────────────────
 // Simple RAII wrapper for COM pointers

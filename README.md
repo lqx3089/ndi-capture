@@ -146,6 +146,7 @@ ndi-capture/
 │   ├── MainWindow.{h,cpp}     ← Qt GUI
 │   ├── CaptureSession.{h,cpp} ← DirectShow graph + frame dispatch
 │   ├── DeviceEnumerator.{h,cpp}
+│   ├── dshow_guids.h          ← centralized GUID fallbacks (see note below)
 │   ├── FrameConverter.{h,cpp} ← libyuv pixel conversion
 │   ├── MjpegDecoder.{h,cpp}   ← libjpeg-turbo MJPEG decode
 │   ├── NdiSenderInterface.h   ← abstract INdiSender + NullNdiSender
@@ -155,6 +156,18 @@ ndi-capture/
 ├── CMakeLists.txt
 └── README.md
 ```
+
+### Note on DirectShow GUID definitions (LNK2005 / LNK1169)
+
+Older versions of this project defined `MEDIASUBTYPE_NV12`, `MEDIASUBTYPE_IYUV`, and
+`MEDIASUBTYPE_MJPG` as `static const GUID` fallbacks in multiple `.cpp` files.  Modern
+Windows SDKs (10.0.19041+) now expose these symbols in `strmiids.lib` (and declare them
+in `<uuids.h>` via `DEFINE_GUID`), so defining them again in the project caused
+LNK2005 / LNK1169 duplicate-symbol linker errors with Visual Studio 2022/2026.
+
+**Fix**: the three SDK-provided GUIDs are no longer redefined in the project.
+`MEDIASUBTYPE_I420` (not in `strmiids.lib`) is defined once as a C++17 `inline const`
+variable in `src/dshow_guids.h` and included where needed.
 
 ---
 

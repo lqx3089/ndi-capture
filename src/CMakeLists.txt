@@ -20,6 +20,7 @@ set(HEADERS
     NdiSender.h
     CaptureSession.h
     MainWindow.h
+    dshow_guids.h
 )
 
 qt_add_executable(NDICapture WIN32
