@@ -367,8 +367,8 @@ void CaptureSession::buildGraph(const DeviceInfo& device, const CaptureMode& mod
                     else if (pmt->subtype == MEDIASUBTYPE_NV12 && mode.subtype == "NV12")  subMatch = true;
                     else if (pmt->subtype == MEDIASUBTYPE_MJPG && mode.subtype == "MJPG")  subMatch = true;
                     else if (pmt->subtype == MEDIASUBTYPE_IYUV && mode.subtype == "I420")  subMatch = true;
-                    else if (pmt->subtype == MEDIASUBTYPE_RGB24&& mode.subtype == "RGB24") subMatch = true;
-                    else if (pmt->subtype == MEDIASUBTYPE_RGB32&& mode.subtype == "RGB32") subMatch = true;
+                    else if (pmt->subtype == MEDIASUBTYPE_RGB24 && mode.subtype == "RGB24") subMatch = true;
+                    else if (pmt->subtype == MEDIASUBTYPE_RGB32 && mode.subtype == "RGB32") subMatch = true;
                     else if (pmt->subtype == MEDIASUBTYPE_UYVY && mode.subtype == "UYVY")  subMatch = true;
                     else {
                         // HDYC (same layout as UYVY)
