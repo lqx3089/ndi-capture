@@ -174,10 +174,10 @@ variable in `src/dshow_guids.h` and included where needed.
 ## License
 
 This project is released under **LGPL-3.0-or-later** (`lgpl_v3_or_later`).
-See `LICENSE/LICENSE`.
+See `LICENSE`.
 
 Qt is used under the **LGPL** terms. This project is intended to be distributed with dynamic linking to Qt libraries to satisfy LGPL requirements.
-Qt license texts are provided in the `LICENSE/` directory (see `LICENSE/QT-LICENSE`).
-Third-party dependency licenses and notices are listed in `LICENSE/THIRD-PARTY-NOTICES.md`.
+Qt license texts are provided in the `THIRD-PARTY-NOTICES/` directory (see `THIRD-PARTY-NOTICES/QT-LICENSE`).
+Third-party dependency licenses and notices are listed in `THIRD-PARTY-NOTICES/THIRD-PARTY-NOTICES.md`.
 
 The NDI SDK is subject to NewTek's separate license agreement and is **not** bundled in this repository. Users must download and install the NDI SDK on their own before building with `-DWITH_NDI=ON`.

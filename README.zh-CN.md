@@ -162,10 +162,10 @@ ndi-capture/
 ## 许可证
 
 本项目基于 **LGPL-3.0-or-later** 发布。
-详见 `LICENSE/LICENSE`。
+详见 `LICENSE`。
 
 Qt 以 **LGPL** 方式使用。为满足 LGPL 要求，本项目按动态链接 Qt 库的方式进行分发。
-Qt 许可证文本已放入 `LICENSE/` 目录（见 `LICENSE/QT-LICENSE`）。
-第三方依赖的许可证与声明见 `LICENSE/THIRD-PARTY-NOTICES.md`。
+Qt 许可证文本已放入 `THIRD-PARTY-NOTICES/` 目录（见 `THIRD-PARTY-NOTICES/QT-LICENSE`）。
+第三方依赖的许可证与声明见 `THIRD-PARTY-NOTICES/THIRD-PARTY-NOTICES.md`。
 
 NDI SDK 受 NewTek 单独许可协议约束，**不**包含在本仓库中。使用者在启用 `-DWITH_NDI=ON` 构建前，需自行下载并安装 NDI SDK。
