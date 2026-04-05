@@ -177,7 +177,7 @@ This project is released under **LGPL-3.0-or-later** (`lgpl_v3_or_later`).
 See `LICENSE/LICENSE`.
 
 Qt is used under the **LGPL** terms. This project is intended to be distributed with dynamic linking to Qt libraries to satisfy LGPL requirements.
-Place Qt license texts in the `LICENSE/` directory (see `LICENSE/QT-LICENSE-PLACEHOLDER.txt`).
+Qt license texts are provided in the `LICENSE/` directory (see `LICENSE/QT-LICENSE`).
 Third-party dependency licenses and notices are listed in `LICENSE/THIRD-PARTY-NOTICES.md`.
 
 The NDI SDK is subject to NewTek's separate license agreement and is **not** bundled in this repository. Users must download and install the NDI SDK on their own before building with `-DWITH_NDI=ON`.

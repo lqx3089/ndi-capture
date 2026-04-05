@@ -9,7 +9,7 @@ This file lists third-party components used by NDI Capture and their licenses.
 - License used by this project: LGPL (typically LGPL-3.0 for Qt 6 open-source distribution)
 - Notes:
   - Qt license texts used for your shipped binaries should be included in this `LICENSE/` directory.
-  - See `LICENSE/QT-LICENSE-PLACEHOLDER.txt` for file placement guidance.
+  - See `LICENSE/QT-LICENSE` for the bundled Qt license text.
 
 ## 2. libyuv
 
