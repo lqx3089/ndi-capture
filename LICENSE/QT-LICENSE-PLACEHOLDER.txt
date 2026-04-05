@@ -1,0 +1,16 @@
+Qt License Files Placeholder
+
+Place the Qt license documents that match your shipped Qt binaries in this folder.
+
+Recommended files to include (depending on your Qt package):
+- LGPLv3.txt (or LGPLv2.1.txt where applicable)
+- GPLv3.txt (if included by your Qt distribution package)
+- Qt-specific exception/notice files distributed with your Qt build
+- Any additional third-party attributions shipped with Qt
+
+Source for official Qt licensing information:
+https://www.qt.io/licensing/
+
+Note:
+This repository does not redistribute Qt itself. Distributors are responsible
+for including the correct Qt license texts for the exact Qt binaries they ship.

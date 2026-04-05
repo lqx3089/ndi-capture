@@ -30,11 +30,11 @@
 | **Windows 10/11** | — |
 | **Visual Studio 2019/2022**（Desktop C++ workload）或 **Windows 上的 LLVM/Clang** | [visualstudio.microsoft.com](https://visualstudio.microsoft.com/) |
 | **CMake ≥ 3.20** | [cmake.org](https://cmake.org/download/) |
-| **Qt 6.x**（Widgets 模块） | [qt.io/download-open-source](https://www.qt.io/download-open-source) |
+| **Qt 6.x**（Widgets 模块，**LGPL**） | [qt.io/download-open-source](https://www.qt.io/download-open-source) |
 | **libyuv** | [chromium.googlesource.com/libyuv/libyuv](https://chromium.googlesource.com/libyuv/libyuv/) —— 使用 CMake 构建并安装，或使用预编译版本 |
 | **libjpeg-turbo** | [libjpeg-turbo.org](https://libjpeg-turbo.org/) —— 下载官方 Windows 安装包（默认安装到 `C:\libjpeg-turbo64`） |
 | **NDI Runtime**（用于在同机接收 NDI） | [ndi.video/tools/](https://ndi.video/tools/) → *NDI Tools* |
-| **NDI SDK**（用于构建 NDI 发送功能） | [ndi.video/for-developers/ndi-sdk/](https://ndi.video/for-developers/ndi-sdk/) |
+| **NDI SDK**（用于构建 NDI 发送功能，需自行下载） | [ndi.video/for-developers/ndi-sdk/](https://ndi.video/for-developers/ndi-sdk/) |
 
 ---
 
@@ -60,7 +60,7 @@ cmake -S . -B build ^
 
 ### 3. 配置（启用 NDI SDK）
 
-安装 NDI SDK 后执行：
+请先从 NDI 开发者官网自行下载并安装 NDI SDK，然后将 `NDI_SDK_DIR` 指向本机 SDK 路径：
 
 ```powershell
 cmake -S . -B build ^
@@ -161,5 +161,10 @@ ndi-capture/
 
 ## 许可证
 
-本项目基于 **MIT License** 发布。  
-NDI SDK 受 NewTek 单独许可协议约束，**不**包含在本仓库中。
+本项目基于 **LGPL-3.0-or-later** 发布。
+详见 `LICENSE/PROJECT-LICENSE.txt`。
+
+Qt 以 **LGPL** 方式使用。为满足 LGPL 要求，本项目按动态链接 Qt 库的方式进行分发。
+Qt 许可证文本请放入 `LICENSE/` 目录（见 `LICENSE/QT-LICENSE-PLACEHOLDER.txt`）。
+
+NDI SDK 受 NewTek 单独许可协议约束，**不**包含在本仓库中。使用者在启用 `-DWITH_NDI=ON` 构建前，需自行下载并安装 NDI SDK。

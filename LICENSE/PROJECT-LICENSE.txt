@@ -1,0 +1,14 @@
+NDI Capture
+Copyright (C) 2026 NDI Capture contributors
+
+SPDX-License-Identifier: LGPL-3.0-or-later
+
+This project is licensed under the GNU Lesser General Public License,
+version 3 or (at your option) any later version.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program. If not, see https://www.gnu.org/licenses/.
+
+Additional clarification for this repository:
+- Qt is used under LGPL terms and should be distributed via dynamic linking.
+- NDI SDK is not included in this repository and remains under its own license.

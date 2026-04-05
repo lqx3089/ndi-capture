@@ -30,11 +30,11 @@ A Windows-focused, portable (no installer) Qt + CMake C++ application for captur
 | **Windows 10/11** | — |
 | **Visual Studio 2019/2022** (Desktop C++ workload) or **LLVM/Clang on Windows** | [visualstudio.microsoft.com](https://visualstudio.microsoft.com/) |
 | **CMake ≥ 3.20** | [cmake.org](https://cmake.org/download/) |
-| **Qt 6.x** (Widgets module) | [qt.io/download-open-source](https://www.qt.io/download-open-source) |
+| **Qt 6.x** (Widgets module, **LGPL**) | [qt.io/download-open-source](https://www.qt.io/download-open-source) |
 | **libyuv** | [chromium.googlesource.com/libyuv/libyuv](https://chromium.googlesource.com/libyuv/libyuv/) — build with CMake and install, *or* use a pre-built binary |
 | **libjpeg-turbo** | [libjpeg-turbo.org](https://libjpeg-turbo.org/) — download the official Windows installer (installs to `C:\libjpeg-turbo64`) |
 | **NDI Runtime** (for receiving NDI on the same machine) | [ndi.video/tools/](https://ndi.video/tools/) → *NDI Tools* |
-| **NDI SDK** (for building with NDI sending support) | [ndi.video/for-developers/ndi-sdk/](https://ndi.video/for-developers/ndi-sdk/) |
+| **NDI SDK** (for building with NDI sending support; download yourself) | [ndi.video/for-developers/ndi-sdk/](https://ndi.video/for-developers/ndi-sdk/) |
 
 ---
 
@@ -60,7 +60,7 @@ cmake -S . -B build ^
 
 ### 3. Configure (with NDI SDK)
 
-Download and install the NDI SDK, then:
+Download and install the NDI SDK yourself from the official NDI developer page, then set `NDI_SDK_DIR` to your local SDK path:
 
 ```powershell
 cmake -S . -B build ^
@@ -173,5 +173,10 @@ variable in `src/dshow_guids.h` and included where needed.
 
 ## License
 
-This project is released under the **MIT License**.  
-The NDI SDK is subject to NewTek's separate license agreement – it is **not** included in this repository.
+This project is released under **LGPL-3.0-or-later** (`lgpl_v3_or_later`).
+See `LICENSE/PROJECT-LICENSE.txt`.
+
+Qt is used under the **LGPL** terms. This project is intended to be distributed with dynamic linking to Qt libraries to satisfy LGPL requirements.
+Place Qt license texts in the `LICENSE/` directory (see `LICENSE/QT-LICENSE-PLACEHOLDER.txt`).
+
+The NDI SDK is subject to NewTek's separate license agreement and is **not** bundled in this repository. Users must download and install the NDI SDK on their own before building with `-DWITH_NDI=ON`.
