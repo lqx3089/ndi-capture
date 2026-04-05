@@ -58,3 +58,4 @@ Thumbs.db
 *.tmp
 *.orig
 /dist
+build-release.ps1
