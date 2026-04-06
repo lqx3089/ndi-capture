@@ -10,7 +10,7 @@
 
 - **DirectShow 设备枚举**：列出所有视频采集设备，并为同名硬件分配唯一短 ID 以便区分。
 - **模式选择器**：默认展示常用模式（1080p/720p 的 60/30 fps）；勾选“Show all modes”可显示设备上报的全部模式。
-- **MJPEG 解码**：使用 **libjpeg-turbo** 解码 MJPEG 帧，在常见 UVC 采集卡上可实现 60 fps 采集。
+- **MJPEG 解码**：使用 **libjpeg-turbo** 对 MJPEG 帧进行硬件加速解码，在常见 UVC 采集卡上可实现 60 fps 采集。
 - **像素格式转换**：使用 **libyuv**（SIMD）将 YUY2/NV12/I420 转换为 NDI 原生 UYVY 或 BGRA。
 - **内嵌预览面板**：主窗口内提供 640 × 360 实时预览，显示采集 FPS、模式标签和设备 ID 叠加信息。
 - **预览不加锁**：预览阶段不会获取设备互斥锁；设备由操作系统/驱动共享。
@@ -146,6 +146,7 @@ ndi-capture/
 │   ├── MainWindow.{h,cpp}     ← Qt GUI
 │   ├── CaptureSession.{h,cpp} ← DirectShow graph + frame dispatch
 │   ├── DeviceEnumerator.{h,cpp}
+│   ├── dshow_guids.h          ← 集中管理的 GUID 回退定义（见下方说明）
 │   ├── FrameConverter.{h,cpp} ← libyuv pixel conversion
 │   ├── MjpegDecoder.{h,cpp}   ← libjpeg-turbo MJPEG decode
 │   ├── NdiSenderInterface.h   ← abstract INdiSender + NullNdiSender
@@ -156,6 +157,19 @@ ndi-capture/
 ├── README.md
 └── README.zh-CN.md
 ```
+
+---
+
+## DirectShow GUID 定义说明（LNK2005 / LNK1169）
+
+本项目早期版本在多个 `.cpp` 文件中将 `MEDIASUBTYPE_NV12`、`MEDIASUBTYPE_IYUV` 和
+`MEDIASUBTYPE_MJPG` 定义为 `static const GUID` 回退值。现代 Windows SDK（10.0.19041+）
+已在 `strmiids.lib` 中提供这些符号（并通过 `<uuids.h>` 中的 `DEFINE_GUID` 声明），
+因此在项目中重复定义会导致 Visual Studio 2022/2026 出现 LNK2005 / LNK1169 重复符号链接错误。
+
+**解决方案**：项目不再重新定义这三个由 SDK 提供的 GUID。
+`MEDIASUBTYPE_I420`（未包含在 `strmiids.lib` 中）以 C++17 `inline const` 变量的形式
+在 `src/dshow_guids.h` 中定义一次，并在需要的地方引入。
 
 ---
 
