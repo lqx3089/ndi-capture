@@ -97,6 +97,16 @@ logs/                                    (auto-created on first run)
 
 ---
 
+## GitHub Actions (Windows CI/CD)
+
+- `windows-ci.yml`: runs on push/PR, builds with `WITH_NDI=ON`, and uploads a portable zip artifact.
+- `windows-release.yml`: runs on version tags (`v*`), builds with `WITH_NDI=ON`, and publishes the zip to GitHub Releases.
+- Both workflows use `vcpkg.json` to install `libyuv` and `libjpeg-turbo`.
+- Set repository **secret or variable** `NDI_SDK_ZIP_URL` to a direct download URL of the NDI SDK zip used for CI compilation.
+- Release/CI zip intentionally does **not** bundle `Processing.NDI.Lib.x64.dll` (NDI runtime DLL). Users should install NDI runtime themselves.
+
+---
+
 ## Run
 
 Double-click `NDICapture.exe` (no installation needed).
