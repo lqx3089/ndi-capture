@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - '**'
-    tags-ignore:
-      - 'v*'
   pull_request:
 
 permissions:
@@ -88,7 +86,7 @@ jobs:
           if (Test-Path 'README.zh-CN.md') {
             Copy-Item 'README.zh-CN.md' $packageDir -Force
           }
-          Copy-Item 'THIRD-PARTY-NOTICES' (Join-Path $packageDir 'THIRD-PARTY-NOTICES') -Recurse -Force
+          Copy-Item 'THIRD-PARTY-NOTICES' $packageDir -Recurse -Force
 
           windeployqt --release --no-translations "$packageDir/NDICapture.exe"
 
