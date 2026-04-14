@@ -103,7 +103,7 @@ jobs:
             Remove-Item $ndiRuntime -Force
           }
 
-          $artifactName = "ndi-capture-ci-${{ github.run_number }}-x64"
+          $artifactName = "ndi-capture-ci-${{ github.run_id }}-x64"
           $zipPath = Join-Path $outRoot "$artifactName.zip"
           if (Test-Path $zipPath) {
             Remove-Item $zipPath -Force
