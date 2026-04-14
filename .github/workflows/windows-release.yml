@@ -90,7 +90,7 @@ jobs:
           windeployqt --release --no-translations "$packageDir/NDICapture.exe"
 
           $vcpkgBin = Join-Path $env:VCPKG_ROOT 'installed/x64-windows/bin'
-          foreach ($dll in @('yuv.dll', 'libyuv.dll', 'turbojpeg.dll')) {
+          foreach ($dll in @('yuv.dll', 'turbojpeg.dll')) {
             $src = Join-Path $vcpkgBin $dll
             if (Test-Path $src) {
               Copy-Item $src $packageDir -Force
