@@ -1,0 +1,126 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.1'
+          arch: 'win64_msvc2022_64'
+          cache: true
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgJsonGlob: '**/vcpkg.json'
+
+      - name: Fetch NDI SDK
+        shell: pwsh
+        env:
+          NDI_SDK_ZIP_URL: ${{ secrets.NDI_SDK_ZIP_URL || vars.NDI_SDK_ZIP_URL }}
+        run: |
+          if (-not $env:NDI_SDK_ZIP_URL) {
+            throw "Missing NDI_SDK_ZIP_URL. Set a repository secret or variable with a direct download URL to the NDI SDK zip."
+          }
+
+          $zipPath = Join-Path $env:RUNNER_TEMP 'ndi-sdk.zip'
+          $extractDir = Join-Path $env:RUNNER_TEMP 'ndi-sdk'
+          Invoke-WebRequest -Uri $env:NDI_SDK_ZIP_URL -OutFile $zipPath
+          Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
+
+          $header = Get-ChildItem -Path $extractDir -Recurse -Filter 'Processing.NDI.Lib.h' | Select-Object -First 1
+          if (-not $header) {
+            throw "Could not find Processing.NDI.Lib.h in downloaded NDI SDK archive."
+          }
+
+          $ndiIncludeDir = Split-Path $header.FullName -Parent
+          $ndiSdkDir = Split-Path $ndiIncludeDir -Parent
+          "NDI_SDK_DIR=$ndiSdkDir" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Configure (CMake + vcpkg + NDI)
+        shell: pwsh
+        run: |
+          cmake -S . -B build `
+            -G "Visual Studio 17 2022" -A x64 `
+            -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DWITH_NDI=ON `
+            -DNDI_SDK_DIR="$env:NDI_SDK_DIR"
+
+      - name: Build
+        run: cmake --build build --config Release --target NDICapture
+
+      - name: Package portable zip (without NDI runtime DLLs)
+        id: package
+        shell: pwsh
+        run: |
+          $exe = Join-Path $PWD 'build/src/Release/NDICapture.exe'
+          if (-not (Test-Path $exe)) {
+            throw "NDICapture.exe not found at $exe"
+          }
+
+          $outRoot = Join-Path $PWD 'dist'
+          $packageDir = Join-Path $outRoot 'NDICapture'
+          New-Item -ItemType Directory -Path $packageDir -Force | Out-Null
+
+          Copy-Item $exe $packageDir -Force
+          Copy-Item 'README.md' $packageDir -Force
+          if (Test-Path 'README.zh-CN.md') {
+            Copy-Item 'README.zh-CN.md' $packageDir -Force
+          }
+          Copy-Item 'THIRD-PARTY-NOTICES' $packageDir -Recurse -Force
+
+          windeployqt --release --no-translations "$packageDir/NDICapture.exe"
+
+          $vcpkgBin = Join-Path $env:VCPKG_ROOT 'installed/x64-windows/bin'
+          foreach ($dll in @('yuv.dll', 'turbojpeg.dll')) {
+            $src = Join-Path $vcpkgBin $dll
+            if (Test-Path $src) {
+              Copy-Item $src $packageDir -Force
+            }
+          }
+
+          $ndiRuntime = Join-Path $packageDir 'Processing.NDI.Lib.x64.dll'
+          if (Test-Path $ndiRuntime) {
+            Remove-Item $ndiRuntime -Force
+          }
+
+          $safeTag = '${{ github.ref_name }}' -replace '[^0-9A-Za-z._-]', '-'
+          $artifactName = "ndi-capture-$safeTag-x64"
+          $zipPath = Join-Path $outRoot "$artifactName.zip"
+          if (Test-Path $zipPath) {
+            Remove-Item $zipPath -Force
+          }
+          Compress-Archive -Path "$packageDir/*" -DestinationPath $zipPath -CompressionLevel Optimal
+
+          "artifact_name=$artifactName" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "zip_path=$zipPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: ${{ steps.package.outputs.zip_path }}
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.package.outputs.zip_path }}
